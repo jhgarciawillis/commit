@@ -1,43 +1,4 @@
-# Core Libraries
 streamlit==1.32.2
-extra_streamlit_components==0.1.64
-
-# System and Type Handling
+gitpython==3.1.42
 typing==3.7.4.3
 subprocess32==3.5.4; python_version < '3.0'
-
-# Additional Utility Libraries
-pathlib==1.0.1
-attrs==23.2.0
-
-# Version Control Interaction
-gitpython==3.1.42
-
-# Security
-cryptography==42.0.5
-
-# Cross-Platform Compatibility
-platform==1.0.8
-
-# Development and Debugging
-python-dotenv==1.0.1
-rich==13.7.1
-
-# Optional: Logging
-loguru==0.7.2
-
-# Optional: Configuration Management
-pyyaml==6.0.1
-
-# System Utilities
-psutil==5.9.8
-
-# Optional: Type Checking
-mypy==1.9.0
-mypy-extensions==1.0.0
-
-# Performance Monitoring (Optional)
-memory-profiler==0.61.0
-
-# Cross-Platform Path Handling
-pathspec==0.12.1
