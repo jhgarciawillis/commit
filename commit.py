@@ -4,7 +4,6 @@ import sys
 from typing import List, Dict, Optional
 
 import streamlit as st
-import extra_streamlit_components as stx
 
 class GitHubSetup:
     def __init__(self):
@@ -303,7 +302,7 @@ def main():
     git_setup_wizard = GitHubSetup()
     
     # Sidebar navigation
-    menu_options = [
+    choice = st.sidebar.selectbox("Navigation", [
         "Project Directory",
         "Git Credentials",
         "Initialize Repository",
@@ -311,9 +310,7 @@ def main():
         "Stage & Commit",
         "Link Remote Repository",
         "Push to GitHub"
-    ]
-    
-    choice = st.sidebar.radio("Navigation", menu_options)
+    ])
     
     # Function mapping
     if choice == "Project Directory":
