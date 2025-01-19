@@ -1,14 +1,16 @@
 import os
 import subprocess
 import sys
-from typing import List, Callable, Dict, Optional
+from typing import List, Dict, Optional
+
+import streamlit as st
+import extra_streamlit_components as stx
 
 class GitHubSetup:
     def __init__(self):
         self.project_directory: str = ''
         self.git_config = {
             'username': '',
-
             'email': '',
             'repository_url': '',
             'commit_message': ''
@@ -33,11 +35,11 @@ class GitHubSetup:
                 capture_output=True, 
                 text=True
             )
-            print(result.stdout)
+            st.success(result.stdout)
             return True
         except subprocess.CalledProcessError as error:
-            print(f"Command Execution Error: {error}")
-            print(error.stderr)
+            st.error(f"Command Execution Error: {error}")
+            st.error(error.stderr)
             return False
 
     def validate_git_installation(self) -> bool:
@@ -53,10 +55,10 @@ class GitHubSetup:
                 capture_output=True, 
                 text=True
             )
-            print("Git is already installed.")
+            st.success("Git is already installed.")
             return True
         except FileNotFoundError:
-            print("Git is not installed.")
+            st.warning("Git is not installed.")
             self.provide_git_installation_guidance()
             return False
 
@@ -70,39 +72,37 @@ class GitHubSetup:
             'Linux': 'sudo apt-get install git'
         }
         
-        print("\n--- Git Installation Guide ---")
+        st.info("--- Git Installation Guide ---")
         for platform, link in installation_guides.items():
-            print(f"{platform}: {link}")
-        
-        input("Press Enter after installing Git...")
+            st.write(f"{platform}: {link}")
 
     def select_project_directory(self) -> bool:
         """
-        Prompt user to select or input project directory.
+        Allow user to select project directory in Streamlit.
         
         Returns:
             bool: True if a valid directory is selected, False otherwise
         """
-        while True:
-            directory_input = input("Enter full project directory path (e.g., C:\\Users\\luisg\\Downloads\\Code\\Piano): ").strip()
-            
-            # Normalize the path and handle potential quotes
-            directory_path = directory_input.strip('"\'')
+        directory_input = st.text_input(
+            "Enter full project directory path", 
+            placeholder="e.g., C:\\Users\\luisg\\Downloads\\Code\\Piano"
+        )
+        
+        if directory_input:
+            directory_path = directory_input.strip()
             
             if os.path.exists(directory_path) and os.path.isdir(directory_path):
                 try:
-                    # Change current working directory
                     os.chdir(directory_path)
                     self.project_directory = directory_path
-                    print(f"✅ Project directory set to: {self.project_directory}")
+                    st.success(f"Project directory set to: {self.project_directory}")
                     return True
                 except Exception as e:
-                    print(f"❌ Error changing directory: {e}")
+                    st.error(f"Error changing directory: {e}")
             else:
-                print("❌ Invalid directory. Please check the path and try again.")
-                retry = input("Would you like to try again? (y/n): ").lower()
-                if retry != 'y':
-                    return False
+                st.error("Invalid directory. Please check the path and try again.")
+        
+        return False
 
     def check_existing_git_config(self) -> Optional[dict]:
         """
@@ -112,7 +112,6 @@ class GitHubSetup:
             Optional[dict]: Existing Git configuration or None
         """
         try:
-            # Retrieve existing Git config
             username_cmd = subprocess.run(
                 ['git', 'config', '--global', 'user.name'], 
                 capture_output=True, 
@@ -124,7 +123,6 @@ class GitHubSetup:
                 text=True
             )
             
-            # Check if commands were successful
             if username_cmd.returncode == 0 and email_cmd.returncode == 0:
                 existing_config = {
                     'username': username_cmd.stdout.strip(),
@@ -133,208 +131,205 @@ class GitHubSetup:
                 return existing_config
             return None
         except Exception as e:
-            print(f"Error checking Git configuration: {e}")
+            st.error(f"Error checking Git configuration: {e}")
             return None
 
     def configure_git_credentials(self):
         """
-        Handle Git credentials configuration with existing config awareness.
+        Configure Git credentials in Streamlit interface.
         """
+        st.header("Git Credentials Configuration")
+        
         existing_config = self.check_existing_git_config()
         
         if existing_config:
-            print("\n--- Existing Git Configuration Found ---")
-            print(f"Current Username: {existing_config['username']}")
-            print(f"Current Email: {existing_config['email']}")
+            st.info(f"Current Username: {existing_config['username']}")
+            st.info(f"Current Email: {existing_config['email']}")
             
-            choice = input("Do you want to (K)eep existing, (U)pdate, or (C)ancel? ").lower()
+            config_choice = st.radio(
+                "Git Configuration", 
+                ["Keep Existing", "Update Credentials", "Cancel"]
+            )
             
-            if choice == 'k':
-                # Keep existing configuration
+            if config_choice == "Keep Existing":
                 self.git_config['username'] = existing_config['username']
                 self.git_config['email'] = existing_config['email']
-                print("✅ Existing Git configuration retained.")
+                st.success("Existing Git configuration retained.")
                 return
-            elif choice == 'c':
-                print("Git configuration setup cancelled.")
+            elif config_choice == "Cancel":
+                st.warning("Git configuration setup cancelled.")
                 return
         
-        # Proceed with new configuration
-        while True:
-            self.git_config['username'] = input("Enter Git Username: ").strip()
-            self.git_config['email'] = input("Enter Git Email: ").strip()
-            
-            username_cmd = f'git config --global user.name "{self.git_config["username"]}"'
-            email_cmd = f'git config --global user.email "{self.git_config["email"]}"'
-            
-            if (self.run_shell_command(username_cmd) and 
-                self.run_shell_command(email_cmd)):
-                print("✅ Git credentials configured successfully!")
-                break
+        # New configuration inputs
+        new_username = st.text_input("Enter Git Username")
+        new_email = st.text_input("Enter Git Email")
+        
+        if st.button("Configure Git Credentials"):
+            if new_username and new_email:
+                username_cmd = f'git config --global user.name "{new_username}"'
+                email_cmd = f'git config --global user.email "{new_email}"'
+                
+                if (self.run_shell_command(username_cmd) and 
+                    self.run_shell_command(email_cmd)):
+                    st.success("Git credentials configured successfully!")
+                else:
+                    st.error("Configuration failed.")
             else:
-                print("❌ Configuration failed. Retry...")
+                st.error("Please provide both username and email.")
 
     def create_comprehensive_gitignore(self):
         """
-        Create a comprehensive .gitignore with multiple configuration options.
+        Create a comprehensive .gitignore with Streamlit interface.
         """
+        st.header(".gitignore Configuration")
+        
         predefined_ignores = {
-            '1': ['node_modules/', '*.log', '.DS_Store'],
-            '2': ['*.pyc', '__pycache__/', '.venv/', 'venv/'],
-            '3': ['*.class', 'target/', 'build/'],
-            '4': ['.idea/', '.vscode/', '*.sublime-project', '*.sublime-workspace'],
-            '5': ['*.swp', '*.swo', '*~']
+            'Node.js': ['node_modules/', '*.log', '.DS_Store'],
+            'Python': ['*.pyc', '__pycache__/', '.venv/', 'venv/'],
+            'Java': ['*.class', 'target/', 'build/'],
+            'IDE': ['.idea/', '.vscode/', '*.sublime-project'],
+            'Temp Files': ['*.swp', '*.swo', '*~']
         }
 
-        print("\n--- .gitignore Configuration ---")
-        print("Select predefined .gitignore templates (multiple choices allowed):")
-        for key, ignores in predefined_ignores.items():
-            print(f"{key}. {', '.join(ignores)}")
-        print("6. Custom manual entry")
-        print("7. Skip .gitignore creation")
+        selected_templates = st.multiselect(
+            "Select predefined .gitignore templates",
+            list(predefined_ignores.keys())
+        )
 
-        selected_options = input("Enter your choices (comma-separated): ").split(',')
-        
-        # Collect ignores from selections
-        self.ignored_files = []
-        for option in selected_options:
-            option = option.strip()
-            if option in predefined_ignores:
-                self.ignored_files.extend(predefined_ignores[option])
-            elif option == '6':
-                # Manual entry
-                manual_ignores = input("Enter custom ignores (comma-separated): ").split(',')
-                self.ignored_files.extend([i.strip() for i in manual_ignores if i.strip()])
+        custom_ignores = st.text_area(
+            "Add custom ignore patterns (comma-separated)",
+            placeholder="e.g., *.log, build/, secrets.json"
+        )
 
-        # Write .gitignore if any files are selected
-        if self.ignored_files:
+        if st.button("Create .gitignore"):
+            self.ignored_files = []
+            
+            # Add selected templates
+            for template in selected_templates:
+                self.ignored_files.extend(predefined_ignores[template])
+            
+            # Add custom ignores
+            if custom_ignores:
+                custom_list = [i.strip() for i in custom_ignores.split(',') if i.strip()]
+                self.ignored_files.extend(custom_list)
+
             try:
                 with open('.gitignore', 'w') as gitignore_file:
-                    for entry in set(self.ignored_files):  # Remove duplicates
+                    for entry in set(self.ignored_files):
                         gitignore_file.write(f"{entry}\n")
-                print("✅ .gitignore file created successfully!")
-                print("Ignored files:", ", ".join(set(self.ignored_files)))
+                st.success("✅ .gitignore file created successfully!")
+                st.write("Ignored files:", ", ".join(set(self.ignored_files)))
             except IOError as error:
-                print(f"❌ .gitignore creation error: {error}")
+                st.error(f"❌ .gitignore creation error: {error}")
 
     def stage_and_commit_changes(self):
         """
-        Stage all changes and commit with a user-provided message.
+        Stage and commit changes via Streamlit.
         """
-        self.git_config['commit_message'] = input("Enter commit message: ")
+        st.header("Stage and Commit Changes")
         
-        staging_result = self.run_shell_command("git add .")
-        commit_result = self.run_shell_command(
-            f'git commit -m "{self.git_config["commit_message"]}"'
-        )
+        commit_message = st.text_input("Enter commit message")
         
-        if staging_result and commit_result:
-            print("✅ Changes staged and committed!")
-        else:
-            print("❌ Staging or commit failed.")
+        if st.button("Stage and Commit"):
+            if commit_message:
+                staging_result = self.run_shell_command("git add .")
+                commit_result = self.run_shell_command(
+                    f'git commit -m "{commit_message}"'
+                )
+                
+                if staging_result and commit_result:
+                    st.success("✅ Changes staged and committed!")
+                else:
+                    st.error("❌ Staging or commit failed.")
+            else:
+                st.error("Please provide a commit message.")
 
     def initialize_local_repository(self):
         """
-        Initialize a new Git repository in the current directory.
+        Initialize a new Git repository via Streamlit.
         """
-        if self.run_shell_command("git init"):
-            print("✅ Local Git repository initialized!")
-        else:
-            print("❌ Repository initialization failed.")
+        st.header("Initialize Local Repository")
+        
+        if st.button("Initialize Git Repository"):
+            if self.run_shell_command("git init"):
+                st.success("✅ Local Git repository initialized!")
+            else:
+                st.error("❌ Repository initialization failed.")
 
     def link_remote_repository(self):
         """
-        Link local repository to a remote GitHub repository with validation.
+        Link local repository to remote GitHub repository.
         """
-        while True:
-            repo_url = input("Enter full GitHub Repository URL (e.g., https://github.com/username/repo.git): ").strip()
-            
-            # Basic URL validation
+        st.header("Link Remote Repository")
+        
+        repo_url = st.text_input(
+            "Enter full GitHub Repository URL", 
+            placeholder="https://github.com/username/repo.git"
+        )
+        
+        if st.button("Link Remote Repository"):
             if repo_url.startswith(('https://github.com/', 'git@github.com:')) and repo_url.endswith('.git'):
                 self.git_config['repository_url'] = repo_url
                 
                 if self.run_shell_command(f'git remote add origin {repo_url}'):
-                    print("✅ Remote repository linked successfully!")
-                    return
+                    st.success("✅ Remote repository linked successfully!")
                 else:
-                    print("❌ Failed to link repository. Check URL and Git configuration.")
+                    st.error("❌ Failed to link repository. Check URL and Git configuration.")
             else:
-                print("❌ Invalid GitHub repository URL. Please provide a valid URL.")
-                retry = input("Try again? (y/n): ").lower()
-                if retry != 'y':
-                    break
+                st.error("❌ Invalid GitHub repository URL.")
 
     def push_to_github(self):
         """
-        Push local repository to GitHub.
+        Push local repository to GitHub via Streamlit.
         """
-        branch_rename_result = self.run_shell_command("git branch -M main")
-        push_result = self.run_shell_command("git push -u origin main")
+        st.header("Push to GitHub")
         
-        if branch_rename_result and push_result:
-            print("✅ Code pushed to GitHub!")
-        else:
-            print("❌ GitHub push failed.")
-
-    def display_github_creation_guide(self):
-        """
-        Provide guidance for creating a GitHub repository.
-        """
-        print("\n--- GitHub Repository Creation Guide ---")
-        print("1. Visit https://github.com/new")
-        print("2. Create an empty repository")
-        print("3. Do NOT add README, .gitignore, or LICENSE")
-        input("Press Enter after creating the repository...")
-
-    def run_interactive_setup(self):
-        """
-        Interactive menu-driven Git and GitHub setup.
-        """
-        # First, select project directory
-        if not self.select_project_directory():
-            print("Project directory selection failed. Exiting.")
-            return
-
-        menu_options: Dict[str, Callable] = {
-            '1': self.configure_git_credentials,
-            '2': self.initialize_local_repository,
-            '3': self.create_comprehensive_gitignore,
-            '4': self.stage_and_commit_changes,
-            '5': self.link_remote_repository,
-            '6': self.push_to_github
-        }
-
-        while True:
-            print("\n--- Git & GitHub Setup Wizard ---")
-            print("\n".join([
-                f"Current Directory: {self.project_directory}",
-                "1. Configure Git Credentials",
-                "2. Initialize Local Repository",
-                "3. Create .gitignore",
-                "4. Stage and Commit Changes",
-                "5. Link Remote Repository",
-                "6. Push to GitHub",
-                "7. Exit"
-            ]))
-
-            choice = input("Select an option (1-7): ")
+        if st.button("Push to GitHub"):
+            branch_rename_result = self.run_shell_command("git branch -M main")
+            push_result = self.run_shell_command("git push -u origin main")
             
-            if choice == '7':
-                print("Exiting Git Setup Wizard...")
-                break
-            
-            selected_action = menu_options.get(choice)
-            if selected_action:
-                selected_action()
+            if branch_rename_result and push_result:
+                st.success("✅ Code pushed to GitHub!")
             else:
-                print("❌ Invalid option. Try again.")
+                st.error("❌ GitHub push failed.")
 
 def main():
     """
-    Main entry point for the Git and GitHub setup script.
+    Streamlit app main function.
     """
+    st.title("🚀 Git & GitHub Setup Wizard")
+    
+    # Initialize GitHubSetup
     git_setup_wizard = GitHubSetup()
-    git_setup_wizard.run_interactive_setup()
+    
+    # Sidebar navigation
+    menu_options = [
+        "Project Directory",
+        "Git Credentials",
+        "Initialize Repository",
+        "Create .gitignore",
+        "Stage & Commit",
+        "Link Remote Repository",
+        "Push to GitHub"
+    ]
+    
+    choice = st.sidebar.radio("Navigation", menu_options)
+    
+    # Function mapping
+    if choice == "Project Directory":
+        git_setup_wizard.select_project_directory()
+    elif choice == "Git Credentials":
+        git_setup_wizard.configure_git_credentials()
+    elif choice == "Initialize Repository":
+        git_setup_wizard.initialize_local_repository()
+    elif choice == "Create .gitignore":
+        git_setup_wizard.create_comprehensive_gitignore()
+    elif choice == "Stage & Commit":
+        git_setup_wizard.stage_and_commit_changes()
+    elif choice == "Link Remote Repository":
+        git_setup_wizard.link_remote_repository()
+    elif choice == "Push to GitHub":
+        git_setup_wizard.push_to_github()
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,72 @@
+repositories = {
+    "BlockTrader": {
+        "github": "https://github.com/jhgarciawillis/BlockTrader.git",
+        "streamlit": "https://blocktrader.streamlit.app/",
+        "local_path": r"C:\Users\luisg\Downloads\Code\HFT\hft2"
+    },
+    "MLTrainer": {
+        "github": "https://github.com/jhgarciawillis/mltrainer.git",
+        "streamlit": "https://mltrainer.streamlit.app/",
+        "local_path": r"C:\Users\luisg\Downloads\Code\mltrainer\1"
+    },
+    "Valualo": {
+        "github": "https://github.com/jhgarciawillis/estimador-valor-inmueble.git",
+        "streamlit": "https://valualo.streamlit.app/",
+        "local_path": r"C:\Users\luisg\Downloads\Code\Valualo\Streamlit"
+    },
+    "Loteria": {
+        "github": "https://github.com/jhgarciawilsis/loteria.git",
+        "streamlit": "https://loteria.streamlit.app/",
+        "local_path": None
+    },
+    "MCSolve": {
+        "github": "https://github.com/jhgarciawillis/mcsolve.git",
+        "streamlit": "https://mcsolve.streamlit.app/",
+        "local_path": r"C:\Users\luisg\Downloads\Code\mcsolve"
+    },
+    "Encryptia": {
+        "github": "https://github.com/jhgarciawillis/encryptia.git",
+        "streamlit": "https://encryptia.streamlit.app/",
+        "local_path": r"C:\Users\luisg\Downloads\Code\utils\pass"
+    },
+    "YTDownloader": {
+        "github": "https://github.com/jhgarciawillis/ytdownloader.git",
+        "streamlit": "https://ytdownlo.streamlit.app/",
+        "local_path": r"C:\Users\luisg\Downloads\Code\ytdownloader"
+    },
+    "IndeedScraper": {
+        "github": "https://github.com/jhgarciawillis/indeedscraper.git",
+        "streamlit": "https://indeedscraper.streamlit.app/",
+        "local_path": r"C:\Users\luisg\Downloads\Code\indeed scraper"
+    },
+    "MLTrainer2": {
+        "github": "https://github.com/jhgarciawillis/mltrainer2.git",
+        "streamlit": "https://mltrainer2.streamlit.app/",
+        "local_path": r"C:\Users\luisg\Downloads\Code\mltrainer\2"
+    },
+    "Agenda": {
+        "github": "https://github.com/jhgarciawillis/agenda.git",
+        "streamlit": "https://agendaj.streamlit.app/",
+        "local_path": None
+    },
+    "Commit": {
+        "github": "https://github.com/jhgarciawillis/commit.git",
+        "streamlit": "https://commit.streamlit.app/",
+        "local_path": r"C:\Users\luisg\Downloads\Code\utils\commit"
+    },
+    "ReadMyPDF": {
+        "github": "https://github.com/jhgarciawillis/readmypdf.git",
+        "streamlit": None,
+        "local_path": r"C:\Users\luisg\Downloads\Code\TTS"
+    },
+    "Piano": {
+        "github": "https://github.com/jhgarciawillis/piano.git",
+        "streamlit": None,
+        "local_path": r"C:\Users\luisg\Downloads\Code\Piano"
+    },
+    "WebFrame": {
+        "github": "https://github.com/jhgarciawillis/WebFrame.git",
+        "streamlit": None,
+        "local_path": r"C:\Users\luisg\Downloads\Code\WebFrame"
+    }
+}
